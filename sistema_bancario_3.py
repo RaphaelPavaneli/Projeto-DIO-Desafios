@@ -6,30 +6,43 @@ Horário, ID da Transação, Descrição.
 Você também tem informações dos dados do pagador e do recebedor das transações, como: Nome, CPF, 
 Agência, Número da Conta e Instituição, podendo também ver e compartilhar o comprovante de cada transação."""
 
-from abc import ABC
+from abc import ABC, abstractclassmethod, abstractproperty
+import datetime
+
+data = datetime.datetime.now()
 
 class Conta:
-    def __init__(self, saldo, numero, agencia, cliente, historico):
+    def __init__(self, saldo, numero, agencia, cliente):
         self._saldo = saldo
         self._numero = numero
         self._agencia = agencia
         self._cliente = cliente
-        self._historico = historico
+        self._historico = Historico()
 
+    @property
     def saldo(self):
         return self._saldo
-    
-    def nova_conta(self, cliente, numero):
-        self._cliente = cliente
-        self._numero = numero
+    @property
+    def numero(self):
+        return self._numero
+    @property
+    def agencia(self):
+        return self._agencia
+    @property
+    def cliente(self):
+        return self._cliente
+
+    @classmethod
+    def nova_conta(cls, cliente, numero):
+        return cls(cliente, numero)
 
     def sacar(self, valor):
         self._saldo -= valor
         return self._saldo
 
     def depositar(self, valor):
-        self._saldo += valor
-        return self._saldo
+       if valor <= self._saldo:
+           pass
 
 class Cliete(Conta):
     def __init__(self, saldo, numero, agencia, cliente, historico, endereco, contas):
@@ -37,8 +50,10 @@ class Cliete(Conta):
         self._endereco = endereco
         self._contas = contas
 
-    def realizar_transacoes():
-        pass
+    def realizar_transacoes(self, pagador):
+        self._cliente
+        self._contas   
+
     def adicionar_conta():
         pass
 
@@ -48,6 +63,14 @@ class ContaCorrente(Conta):
         self._limite = limite
         self._limite_saques = limite_saques
 
+    def sacar(self, valor):   
+        self._saldo -= valor
+        return self._saldo
+
+    def depositar(self, valor):
+        self._saldo += valor
+        return self._saldo
+    
 class PessoaFisica(Cliete):
     def __init__(self, saldo, numero, agencia, cliente, historico, endereco, contas, cpf, nome, data_nascimento):
         super().__init__(saldo, numero, agencia, cliente, historico, endereco, contas)
@@ -62,21 +85,18 @@ class PessoaFisica(Cliete):
     def agencia_incluir_historico(cls):
         return cls._agencia
 
-class Transacao(ABC): 
-    def __init__(self):
-      pass
-
-    def registrar(self, conta):
-        self.conta = conta
-
 class Historico:
     def __init__(self):
         self.trasacoes = []
 
-    def adicionar_transacao(self, tipo_transferencia, data_transacao, horario, descricao, valor_da_transferencia, nome_recebedor):
-        nome_recebedor = PessoaFisica.nome_incluir_historico()
-        print(nome_recebedor)
+    def adicionar_transacao(self, tipo_transferencia, descricao, valor_da_transferencia, nome_recebedor):
 
+        data_transacao = data.date()
+        horario = data.time()
+        horario = horario.strftime("%H/%M/%S")
+        data_transacao = data_transacao.strftime("%d:%m:%Y")
+        
+        
         self.trasacoes .append({
             "tipo": tipo_transferencia,
             "data da transacao": data_transacao,
@@ -85,28 +105,46 @@ class Historico:
             "valor": valor_da_transferencia,
             "nome": nome_recebedor
             })
-    
 
-pessoa = PessoaFisica()
+class Transacao(ABC): 
+    @abstractclassmethod
+    def registrar(self, conta):
+        pass
 
-teste = Historico()
-
-teste.adicionar_transacao("Pix", "20/10/2000", "14:00:20", "teste", 300)
+    @property
+    @abstractproperty
+    def valor(self):
+        pass
 
 class Saque(Transacao):
     def __init__(self, valor):
-        self._valor = valor    
+        self._valor = valor
+
+    @property
+    def valor(self):
+        return self._valor
+    
+    def registrar(self, conta):
+        sucesso_transacao = conta.sacar(self.valor)
+
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)
 
 class Deposito(Transacao):
     def __init__(self, valor):
         self._valor = valor
 
+    @property
+    def valor(self):
+        return self._valor
 
+    def registrar(self, conta):
+        sucesso_transacao = conta.depositar(self._valor)
+        
+        if sucesso_transacao:
+            conta.historico.adicionar_transacao(self)
 
-depositar = Deposito()
-depositar.registrar()
-
-
+#------------------------------------------------------------------------------------------------#
 def semclasse():
     import textwrap
 
@@ -250,3 +288,12 @@ def semclasse():
 
 
     main()
+
+pessoa = PessoaFisica()
+
+teste = Historico()
+
+teste.adicionar_transacao("Pix", "20/10/2000", "14:00:20", "teste", 300)
+
+depositar = Deposito()
+depositar.registrar()
